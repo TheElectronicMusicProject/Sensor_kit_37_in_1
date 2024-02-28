@@ -50,7 +50,7 @@ setup ()
 /**
  * @brief   Loop function.
  * @par     Description
- * Print of the analog read of the joystick every 500 milliseconds.
+ * Prints the analog read of the joystick every 500 milliseconds.
  * @return  Nothing.
  */
 void
