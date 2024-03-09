@@ -82,7 +82,7 @@ loop ()
 
     // analogWrite goes from 0 to 255.
     //
-    analogWrite(PIN_LED_PWM, value);
+    analogWrite(PIN_LED_PWM, value / 4);
 
     if ((0 != debounce_time_ms) && ((millis() - debounce_time_ms) > 2000))
     {
