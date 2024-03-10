@@ -5,9 +5,9 @@
  * @brief   A sample code for the infrared transmitter (KY005)
  * Connections:
  * Sensor       -----       Arduino Uno
- * -                        +
+ * +                        D5
  * [no label]               [read note]
- * S                        D5
+ * S                        GND
  *
  * @note    This pin can be used for the connection of GND + resistor (so no
  *          need for an external resistor), but you must insert the missing
@@ -50,7 +50,7 @@ loop ()
 {
     static uint8_t led_status(0);
     static uint32_t prev_time(millis());
-    uint32_t wait_time(random(1, 1000));
+    static uint32_t wait_time(random(1, 1000));
 
     if ((millis() - prev_time) > wait_time)
     {
@@ -58,6 +58,7 @@ loop ()
         digitalWrite(PIN_LED, led_status);
         led_status = ~led_status;
         prev_time = millis();
+        wait_time = random(1, 1000);
     }
 }   /* loop() */
 
