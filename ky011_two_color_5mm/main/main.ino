@@ -2,7 +2,7 @@
  * @file    main.ino
  * @author  Filippo Graziani
  * @date    06/03/2024
- * @brief   A sample code for the two-color LED (KY011)
+ * @brief   A sample code for the two-color LED 5mm (KY011)
  * Connections:
  * Sensor       -----       Arduino Uno
  * -                        GND
