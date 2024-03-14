@@ -14,11 +14,11 @@
 #include "Arduino.h"
 #include <stdint.h>
 
-void irq_sound_detect();
-
 #define     PIN_ANALOG_MICROPHONE   (A0)
 #define     PIN_DIGITAL_MICROPHONE  (3)
 #define     PIN_LED                 (LED_BUILTIN)
+
+void irq_sound_detect();
 
 static volatile bool b_detected(false);
 
@@ -64,6 +64,7 @@ loop ()
 
     if ((true == b_detected) && (0 == debounce_time_ms))
     {
+        detachInterrupt(digitalPinToInterrupt(PIN_DIGITAL_MICROPHONE));
         Serial.println("Sound detected");
         digitalWrite(PIN_LED, led_status);
         led_status = ~led_status;

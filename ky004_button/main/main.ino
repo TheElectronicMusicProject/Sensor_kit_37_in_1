@@ -57,6 +57,8 @@ loop ()
 
     if ((true == b_pressed) && (0 == debounce_time_ms))
     {
+        detachInterrupt(digitalPinToInterrupt(PIN_BTN));
+        
         Serial.println("Button pressed");
 
         led_intesity += 50;
