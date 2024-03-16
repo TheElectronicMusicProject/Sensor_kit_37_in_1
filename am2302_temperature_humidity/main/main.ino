@@ -1,30 +1,31 @@
 /**
  * @file    main.ino
  * @author  Filippo Graziani
- * @date    14/03/2024
- * @brief   A sample code for the temperature/humidity sensor (KY015 - DHT11)
+ * @date    16/03/2024
+ * @brief   A sample code for the temperature/humidity sensor (AM2302 - DHT22)
  * Connections:
  * Sensor       -----       Arduino Uno
- * S                        D3
- * +                        5V
- * -                        GND
+ * [1]                      5V
+ * [2]                      D3
+ * [3]                      GND
+ * [4]                      GND
  */
 
 #include "Arduino.h"
 #include <stdint.h>
 
-#define     PIN_DH11                (3)
+#define     PIN_DHT22           (3)
 
 namespace dht
 {
-    class dht11
+    class dht22
     {
         private:
             const uint32_t n_byte;
             uint8_t pin;
 
             /**
-            * @brief    Check the level of the DHT11 pin
+            * @brief    Check the level of the DHT22 pin
             * @par      Description
             * Function to check how much time the pin remains high or low.
             * It calculates the time in microseconds before the transitions.
@@ -37,7 +38,7 @@ namespace dht
             *           funtion and the transition, -1 in case of timeout.
             */
             int32_t
-            dht11_get_level (int32_t us_timeout,
+            dht22_get_level (int32_t us_timeout,
                              uint8_t state)
             {
                 int32_t prev_us_time(micros());
@@ -54,38 +55,38 @@ namespace dht
                 } while (state == digitalRead(pin));
 
                 return (curr_diff_time);
-            }   /* dht11_get_level() */
+            }   /* dht22_get_level() */
 
         public:
             /**
-            * @brief    Constructor for the class dht11.
+            * @brief    Constructor for the class dht22.
             * @par      Description
-            * Initialization of the DHT11 pin on the Arduino Uno side.
-            * @param[in]   pin_number   Number of the pin where the DHT11 is
+            * Initialization of the DHT22 pin on the Arduino Uno side.
+            * @param[in]   pin_number   Number of the pin where the DHT22 is
             *                           connected to.
             * @return   Always nothing.
             * @note     Default pin number is D2.
             */
             explicit
-            dht11 (uint8_t pin_number = 2) : n_byte(5)
+            dht22 (uint8_t pin_number = 2) : n_byte(5)
             {
                 pin = pin_number;
                 pinMode(pin, OUTPUT);
-            }   /* dht11() */
+            }   /* dht22() */
 
             // Default copy constructor.
             //
-            //dht11(const dht11& other_dht11);
+            //dht22(const dht22& other_dht22);
 
             // Default destructor.
             //
-            //~dht11();
+            //~dht22();
 
             /**
-            * @brief    Constructor for the class dht11.
+            * @brief    Constructor for the class dht22.
             * @par      Description
-            * Initialization of the DHT11 pin on the Arduino Uno side.
-            * @param[in]   pin_number   Number of the pin where the DHT11 is
+            * Initialization of the DHT22 pin on the Arduino Uno side.
+            * @param[in]   pin_number   Number of the pin where the DHT22 is
             *                           connected to.
             * @return   Nothing.
             */
@@ -99,7 +100,7 @@ namespace dht
             /**
             * @brief    Read temperature and humidity
             * @par      Description
-            * Communication with the DHT11 to read the temperature and humidity
+            * Communication with the DHT22 to read the temperature and humidity
             * values.
             * @param[out]   temperature Temperature read, in celsius.
             * @param[out]   humidity    Humidity read, in percentage.
@@ -114,13 +115,15 @@ namespace dht
                 int32_t us_time(0);
                 uint32_t idx_byte(0);
                 uint32_t idx_bit(0);
+                int32_t temp_h(0);
+                int32_t temp_t(0);
 
                 // Start signal from MCU
                 //
                 pinMode(pin, OUTPUT);
                 digitalWrite(pin, LOW);
 
-                delay(20);
+                delay(3);
 
                 // Pull-up from MCU
                 //
@@ -131,28 +134,28 @@ namespace dht
                 //
                 pinMode(pin, INPUT);
 
-                // Wait until the signal goes low (DHT11 starts th
+                // Wait until the signal goes low (DHT22 starts th
                 // communication)
                 //
-                us_time = dht11_get_level(1000, HIGH);
+                us_time = dht22_get_level(1000, HIGH);
 
                 if (-1 == us_time)
                 {
                     return -1;
                 }
 
-                // DHT11 pulls-low
+                // DHT22 pulls-low
                 //
-                us_time = dht11_get_level(85, LOW);
+                us_time = dht22_get_level(85, LOW);
 
                 if (-1 == us_time)
                 {
                     return -1;
                 }
 
-                // DHT11 pulls-up
+                // DHT22 pulls-up
                 //
-                us_time = dht11_get_level(85, HIGH);
+                us_time = dht22_get_level(85, HIGH);
 
                 if (-1 == us_time)
                 {
@@ -163,9 +166,9 @@ namespace dht
                 {
                     for (idx_bit = 0; idx_bit < 8; ++idx_bit)
                     {
-                        // Start signal from DHT11
+                        // Start signal from DHT22
                         //
-                        us_time = dht11_get_level(50, LOW);
+                        us_time = dht22_get_level(100, LOW);
 
                         if (-1 == us_time)
                         {
@@ -176,7 +179,7 @@ namespace dht
                         // - bit 0 if the duration is between 26/28us
                         // - bit 1 if the duration is 70us
                         //
-                        us_time = dht11_get_level(75, HIGH);
+                        us_time = dht22_get_level(75, HIGH);
 
                         if (-1 == us_time)
                         {
@@ -199,9 +202,23 @@ namespace dht
                 // Dividing by 256 (like a shift of 8 positions to the right) we
                 // adjust the floating point value.
                 //
-                humidity = ((dht_data[0] * 256.0) + dht_data[1]) / 256.0;
+                temp_h = dht_data[0];
+                temp_h <<= 8;
+                temp_h |= dht_data[1];
+                humidity = (float) temp_h / 10.0;
 
-                temperature = ((dht_data[2] * 256.0) + dht_data[3]) / 256.0;
+                temp_t = dht_data[2] & 0x7F;
+                temp_t <<= 8;
+                temp_t |= dht_data[3];
+                temperature = (float) temp_t / 10.0;
+
+                // If the most significant bit is 1, then the temperature is
+                // negative.
+                //
+                if (0 != (dht_data[2] & 0x80))
+                {
+                    temperature *= -1;
+                }
 
                 if (dht_data[4] == ((dht_data[0] + dht_data[1] + dht_data[2] +
                                      dht_data[3]) & 0xFF))
@@ -216,7 +233,7 @@ namespace dht
     };
 };
 
-dht::dht11 g_dht11_sensor(PIN_DH11);
+dht::dht22 g_dht22_sensor(PIN_DHT22);
 
 /**
  * @brief   Setup function.
@@ -248,7 +265,7 @@ loop ()
     float humid(0.0);
     int32_t ret(0);
 
-    g_dht11_sensor.read(temp, humid);
+    g_dht22_sensor.read(temp, humid);
 
     if (0 == ret)
     {
@@ -260,7 +277,7 @@ loop ()
         Serial.println("ret is " + String(ret));
     }
 
-    delay(1000);
+    delay(2000);
 }   /* loop() */
 
 
